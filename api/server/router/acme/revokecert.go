@@ -15,7 +15,7 @@ import (
 	"github.com/kassisol/tsa/pkg/adf"
 	"github.com/kassisol/tsa/pkg/api"
 	"github.com/kassisol/tsa/pkg/token"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 	"golang.org/x/crypto/ocsp"
 )
 
@@ -69,7 +69,7 @@ func RevokeCertHandle(c echo.Context) error {
 
 	cn := reCN.FindStringSubmatch(rcert.DistinguishedName)[1]
 
-	if cn != claims.Audience && !claims.Admin {
+	if cn != claims.GetFirstAudience() && !claims.Admin {
 		r := jsonapi.NewErrorResponse(11000, "Cannot revoke a certificate for which you are not the owner")
 
 		return api.JSON(c, http.StatusBadRequest, r)

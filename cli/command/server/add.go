@@ -3,12 +3,12 @@ package server
 import (
 	"os"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/juliengk/go-utils/validation"
 	"github.com/juliengk/stack/client"
 	"github.com/kassisol/tsa/cli/storage"
 	"github.com/kassisol/tsa/pkg/adf"
 	"github.com/spf13/cobra"
+	"log/slog"
 )
 
 func newAddCommand() *cobra.Command {
@@ -30,24 +30,28 @@ func runAdd(cmd *cobra.Command, args []string) {
 
 	cfg := adf.NewServer()
 	if err := cfg.Init(); err != nil {
-		log.Fatal(err)
+		slog.Error(err.Error())
+		os.Exit(1)
 	}
 
 	s, err := storage.NewDriver("sqlite", cfg.AppDir)
 	if err != nil {
-		log.Fatal(err)
+		slog.Error(err.Error())
+		os.Exit(1)
 	}
 	defer s.End()
 
 	// Input Validations
 	// IV - Server name
 	if err = validation.IsValidName(args[0]); err != nil {
-		log.Fatal(err)
+		slog.Error(err.Error())
+		os.Exit(1)
 	}
 
 	// IV - TSA URL
 	if _, err := client.ParseUrl(args[1]); err != nil {
-		log.Fatal(err)
+		slog.Error(err.Error())
+		os.Exit(1)
 	}
 
 	s.AddServer(args[0], args[1], "")

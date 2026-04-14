@@ -30,7 +30,7 @@ func (c *Config) ValidConfigKeyCount(key string) error {
 
 	count := c.Keys[key]
 
-	if s.CountConfigKey(key) >= count.Max {
+	if count.Max > 0 && s.CountConfigKey(key) >= count.Max {
 		return fmt.Errorf("%s is already used", key)
 	}
 

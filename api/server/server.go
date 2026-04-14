@@ -1,7 +1,9 @@
 package server
 
 import (
-	log "github.com/Sirupsen/logrus"
+	"log/slog"
+	"os"
+
 	mw "github.com/kassisol/tsa/api/server/middleware"
 	"github.com/kassisol/tsa/api/server/router/acme"
 	"github.com/kassisol/tsa/api/server/router/ca"
@@ -9,19 +11,22 @@ import (
 	"github.com/kassisol/tsa/api/server/router/system"
 	"github.com/kassisol/tsa/api/storage"
 	"github.com/kassisol/tsa/pkg/adf"
-	"github.com/labstack/echo"
-	"github.com/labstack/echo/middleware"
+	echojwt "github.com/labstack/echo-jwt/v4"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 )
 
 func API(addr string, tls bool) {
 	cfg := adf.NewDaemon()
 	if err := cfg.Init(); err != nil {
-		log.Fatal(err)
+		slog.Error(err.Error())
+		os.Exit(1)
 	}
 
 	s, err := storage.NewDriver("sqlite", cfg.App.Dir.Root)
 	if err != nil {
-		log.Fatal(err)
+		slog.Error(err.Error())
+		os.Exit(1)
 	}
 	defer s.End()
 
@@ -46,13 +51,13 @@ func API(addr string, tls bool) {
 	e.GET("/version", system.ServerVersionHandle)
 
 	// System
-	jwtConfig := middleware.JWTConfig{
+	jwtConfig := echojwt.Config{
 		Skipper:    mw.DefaultSkipper,
 		SigningKey: jwk,
 	}
 
 	sys := e.Group("/system")
-	sys.Use(middleware.JWTWithConfig(jwtConfig))
+	sys.Use(echojwt.WithConfig(jwtConfig))
 	sys.Use(mw.AdminOnly())
 
 	sys.GET("/info", system.InfoHandle)
@@ -67,6 +72,7 @@ func API(addr string, tls bool) {
 
 	sys.GET("/cert", system.CertListHandle)
 	sys.DELETE("/cert/revoke/:serialnumber", system.CertRevokeHandle)
+	sys.DELETE("/cert/revoke-by-cn/:cn", system.CertRevokeByCNHandle)
 
 	// CA public certificate
 	e.GET("/ca", ca.PubCertHandle)
@@ -76,7 +82,7 @@ func API(addr string, tls bool) {
 
 	// ACME
 	r := e.Group("/acme")
-	r.Use(middleware.JWT(jwk))
+	r.Use(echojwt.JWT(jwk))
 
 	// New certificate
 	r.POST("/new-app", acme.NewCertHandle)
@@ -85,8 +91,14 @@ func API(addr string, tls bool) {
 	r.POST("/revoke-cert", acme.RevokeCertHandle)
 
 	if tls {
-		log.Fatal(e.StartTLS(addr, cfg.API.CrtFile, cfg.API.KeyFile))
+		if err := e.StartTLS(addr, cfg.API.CrtFile, cfg.API.KeyFile); err != nil {
+			slog.Error(err.Error())
+			os.Exit(1)
+		}
 	} else {
-		log.Fatal(e.Start(addr))
+		if err := e.Start(addr); err != nil {
+			slog.Error(err.Error())
+			os.Exit(1)
+		}
 	}
 }

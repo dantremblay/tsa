@@ -18,7 +18,7 @@ import (
 	"github.com/kassisol/tsa/pkg/adf"
 	"github.com/kassisol/tsa/pkg/api"
 	valid "github.com/kassisol/tsa/pkg/validation"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 )
 
 var ErrCountryCodeLength = fmt.Errorf("Country should be a 2 letters code")

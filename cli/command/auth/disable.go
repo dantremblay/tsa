@@ -3,10 +3,10 @@ package auth
 import (
 	"os"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/kassisol/tsa/cli/session"
 	"github.com/kassisol/tsa/client"
 	"github.com/spf13/cobra"
+	"log/slog"
 )
 
 func newDisableCommand() *cobra.Command {
@@ -28,22 +28,26 @@ func runDisable(cmd *cobra.Command, args []string) {
 
 	sess, err := session.New()
 	if err != nil {
-		log.Fatal(err)
+		slog.Error(err.Error())
+		os.Exit(1)
 	}
 	defer sess.End()
 
 	srv, err := sess.Get()
 	if err != nil {
-		log.Fatal(err)
+		slog.Error(err.Error())
+		os.Exit(1)
 	}
 
 	clt, err := client.New(srv.Server.TSAURL)
 	if err != nil {
-		log.Fatal(err)
+		slog.Error(err.Error())
+		os.Exit(1)
 	}
 
 	if err := clt.AuthDisable(srv.Token); err != nil {
-		log.Fatal(err)
+		slog.Error(err.Error())
+		os.Exit(1)
 	}
 }
 

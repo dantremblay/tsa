@@ -13,7 +13,7 @@ func (c *Config) AddServer(name, tsaURL, description string) {
 }
 
 func (c *Config) RemoveServer(name string) {
-	c.DB.Where("name = ?", name).Delete(Server{})
+	c.DB.Where("name = ?", name).Delete(&Server{})
 }
 
 func (c *Config) ListServers(filter map[string]string) []driver.ServerResult {

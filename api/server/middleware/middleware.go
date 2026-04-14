@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"github.com/juliengk/go-utils"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 )
 
 func generateEndpointsSlice(key string, restricted bool) []string {

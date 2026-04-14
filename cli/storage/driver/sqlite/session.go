@@ -44,11 +44,12 @@ func (c *Config) ListSessions(filter map[string]string) []driver.SessionResult {
 
 	return result
 }
+
 func (c *Config) AddSession(serverID uint, token string) {
 	var server Server
 	c.DB.Where("id = ?", serverID).First(&server)
 
-	c.DB.Model(&Session{}).Update("active", false)
+	c.DB.Model(&Session{}).Where("1 = 1").Update("active", false)
 	c.DB.Create(&Session{
 		Server: server,
 		Active: true,
@@ -57,15 +58,14 @@ func (c *Config) AddSession(serverID uint, token string) {
 }
 
 func (c *Config) RemoveSession(id uint) {
-	c.DB.Where("id = ?", id).Delete(Session{})
+	c.DB.Where("id = ?", id).Delete(&Session{})
 }
 
 func (c *Config) RemoveAllSessions() {
-	c.DB.Delete(Session{})
+	c.DB.Where("1 = 1").Delete(&Session{})
 }
 
 func (c *Config) ActivateSession(id uint, activate bool) {
-	c.DB.Model(&Session{}).Update("active", false)
-
+	c.DB.Model(&Session{}).Where("1 = 1").Update("active", false)
 	c.DB.Model(&Session{}).Where("id = ?", id).Update("active", activate)
 }

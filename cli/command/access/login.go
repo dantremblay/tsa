@@ -3,11 +3,11 @@ package access
 import (
 	"os"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/juliengk/go-utils"
 	"github.com/juliengk/go-utils/readinput"
 	"github.com/kassisol/tsa/cli/session"
 	"github.com/spf13/cobra"
+	"log/slog"
 )
 
 var (
@@ -62,22 +62,26 @@ func runLogin(cmd *cobra.Command, args []string) {
 	// Input validations
 	// IV - Username
 	if len(username) <= 0 {
-		log.Fatal("Empty username is not allowed")
+		slog.Error("Empty username is not allowed")
+		os.Exit(1)
 	}
 
 	// IV - Password
 	if len(password) <= 0 {
-		log.Fatal("Empty password is not allowed")
+		slog.Error("Empty password is not allowed")
+		os.Exit(1)
 	}
 
 	sess, err := session.New()
 	if err != nil {
-		log.Fatal(err)
+		slog.Error(err.Error())
+		os.Exit(1)
 	}
 	defer sess.End()
 
 	if err := sess.Create(args[0], username, password, tsattl); err != nil {
-		log.Fatal(err)
+		slog.Error(err.Error())
+		os.Exit(1)
 	}
 }
 

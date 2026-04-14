@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/juliengk/stack/jsonapi"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 )
 
 func JSON(c echo.Context, code int, i interface{}) error {

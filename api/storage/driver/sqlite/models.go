@@ -5,8 +5,8 @@ import (
 )
 
 type Model struct {
-	ID        uint      `gorm:"primary_key"`
-	CreatedAt time.Time `gorm:"created_at"`
+	ID        uint      `gorm:"primaryKey"`
+	CreatedAt time.Time `gorm:"column:created_at"`
 }
 
 type ServerConfig struct {

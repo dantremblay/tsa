@@ -5,11 +5,11 @@ import (
 	"os"
 	"text/tabwriter"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/juliengk/go-utils"
 	"github.com/kassisol/tsa/cli/session"
 	"github.com/kassisol/tsa/client"
 	"github.com/spf13/cobra"
+	"log/slog"
 )
 
 var certListFilter []string
@@ -37,25 +37,29 @@ func runList(cmd *cobra.Command, args []string) {
 
 	sess, err := session.New()
 	if err != nil {
-		log.Fatal(err)
+		slog.Error(err.Error())
+		os.Exit(1)
 	}
 	defer sess.End()
 
 	srv, err := sess.Get()
 	if err != nil {
-		log.Fatal(err)
+		slog.Error(err.Error())
+		os.Exit(1)
 	}
 
 	clt, err := client.New(srv.Server.TSAURL)
 	if err != nil {
-		log.Fatal(err)
+		slog.Error(err.Error())
+		os.Exit(1)
 	}
 
 	filters := utils.ConvertSliceToMap("=", certListFilter)
 
 	certificates, err := clt.CertList(srv.Token, filters)
 	if err != nil {
-		log.Fatal(err)
+		slog.Error(err.Error())
+		os.Exit(1)
 	}
 
 	if len(certificates) > 0 {

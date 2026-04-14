@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"os"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/juliengk/go-utils/readinput"
 	"github.com/kassisol/tsa/cli/session"
 	"github.com/kassisol/tsa/client"
 	"github.com/spf13/cobra"
+	"log/slog"
 )
 
 var (
@@ -55,13 +55,15 @@ func runInit(cmd *cobra.Command, args []string) {
 
 	sess, err := session.New()
 	if err != nil {
-		log.Fatal(err)
+		slog.Error(err.Error())
+		os.Exit(1)
 	}
 	defer sess.End()
 
 	srv, err := sess.Get()
 	if err != nil {
-		log.Fatal(err)
+		slog.Error(err.Error())
+		os.Exit(1)
 	}
 
 	catype = "root"
@@ -99,11 +101,13 @@ func runInit(cmd *cobra.Command, args []string) {
 
 	clt, err := client.New(srv.Server.TSAURL)
 	if err != nil {
-		log.Fatal(err)
+		slog.Error(err.Error())
+		os.Exit(1)
 	}
 
 	if err := clt.CAInit(srv.Token, catype, country, state, locality, o, ou, duration); err != nil {
-		log.Fatal(err)
+		slog.Error(err.Error())
+		os.Exit(1)
 	}
 
 	fmt.Println("Initialization done successfully")

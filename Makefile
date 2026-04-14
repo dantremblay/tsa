@@ -27,7 +27,7 @@ $(TARGETS): .dapper
 	./.dapper $@
 
 build-dev:
-	BUILD_DIR="/go/bin" ./scripts/build-targets
+	LDFLAGS="-s -w" ./scripts/build-targets
 
 clean:
 	@./scripts/clean

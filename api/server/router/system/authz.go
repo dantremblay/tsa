@@ -9,7 +9,7 @@ import (
 	"github.com/kassisol/tsa/api/server/httputils"
 	"github.com/kassisol/tsa/pkg/api"
 	"github.com/kassisol/tsa/pkg/token"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 )
 
 func AuthzHandle(c echo.Context) error {

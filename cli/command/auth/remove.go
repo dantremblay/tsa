@@ -3,10 +3,10 @@ package auth
 import (
 	"os"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/kassisol/tsa/cli/session"
 	"github.com/kassisol/tsa/client"
 	"github.com/spf13/cobra"
+	"log/slog"
 )
 
 func newRemoveCommand() *cobra.Command {
@@ -29,18 +29,21 @@ func runRemove(cmd *cobra.Command, args []string) {
 
 	sess, err := session.New()
 	if err != nil {
-		log.Fatal(err)
+		slog.Error(err.Error())
+		os.Exit(1)
 	}
 	defer sess.End()
 
 	srv, err := sess.Get()
 	if err != nil {
-		log.Fatal(err)
+		slog.Error(err.Error())
+		os.Exit(1)
 	}
 
 	clt, err := client.New(srv.Server.TSAURL)
 	if err != nil {
-		log.Fatal(err)
+		slog.Error(err.Error())
+		os.Exit(1)
 	}
 
 	if len(args) == 1 {
@@ -48,7 +51,8 @@ func runRemove(cmd *cobra.Command, args []string) {
 	}
 
 	if err := clt.AuthDelete(srv.Token, args[0], args[1]); err != nil {
-		log.Fatal(err)
+		slog.Error(err.Error())
+		os.Exit(1)
 	}
 }
 

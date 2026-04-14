@@ -5,10 +5,10 @@ import (
 	"os"
 	"text/tabwriter"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/kassisol/tsa/cli/storage"
 	"github.com/kassisol/tsa/pkg/adf"
 	"github.com/spf13/cobra"
+	"log/slog"
 )
 
 func newListCommand() *cobra.Command {
@@ -31,12 +31,14 @@ func runList(cmd *cobra.Command, args []string) {
 
 	cfg := adf.NewServer()
 	if err := cfg.Init(); err != nil {
-		log.Fatal(err)
+		slog.Error(err.Error())
+		os.Exit(1)
 	}
 
 	s, err := storage.NewDriver("sqlite", cfg.AppDir)
 	if err != nil {
-		log.Fatal(err)
+		slog.Error(err.Error())
+		os.Exit(1)
 	}
 	defer s.End()
 

@@ -4,9 +4,9 @@ import (
 	"os"
 	"strconv"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/kassisol/tsa/cli/session"
 	"github.com/spf13/cobra"
+	"log/slog"
 )
 
 var sessionRemoveAll bool
@@ -34,22 +34,26 @@ func runRemove(cmd *cobra.Command, args []string) {
 
 	sess, err := session.New()
 	if err != nil {
-		log.Fatal(err)
+		slog.Error(err.Error())
+		os.Exit(1)
 	}
 	defer sess.End()
 
 	if sessionRemoveAll {
 		if err := sess.Clear(); err != nil {
-			log.Fatal(err)
+			slog.Error(err.Error())
+			os.Exit(1)
 		}
 	} else {
 		id, err := strconv.Atoi(args[0])
 		if err != nil {
-			log.Fatal(err)
+			slog.Error(err.Error())
+			os.Exit(1)
 		}
 
 		if err := sess.Remove(uint(id)); err != nil {
-			log.Fatal(err)
+			slog.Error(err.Error())
+			os.Exit(1)
 		}
 	}
 }

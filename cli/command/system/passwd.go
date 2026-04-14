@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"os"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/juliengk/go-utils/readinput"
 	"github.com/kassisol/tsa/cli/session"
 	"github.com/kassisol/tsa/client"
 	"github.com/spf13/cobra"
+	"log/slog"
 )
 
 func NewPasswdCommand() *cobra.Command {
@@ -30,13 +30,15 @@ func runPasswd(cmd *cobra.Command, args []string) {
 
 	sess, err := session.New()
 	if err != nil {
-		log.Fatal(err)
+		slog.Error(err.Error())
+		os.Exit(1)
 	}
 	defer sess.End()
 
 	srv, err := sess.GetServer(args[0])
 	if err != nil {
-		log.Fatal(err)
+		slog.Error(err.Error())
+		os.Exit(1)
 	}
 
 	oldPassword := readinput.ReadPassword("Old Password")
@@ -45,11 +47,13 @@ func runPasswd(cmd *cobra.Command, args []string) {
 
 	clt, err := client.New(srv.TSAURL)
 	if err != nil {
-		log.Fatal(err)
+		slog.Error(err.Error())
+		os.Exit(1)
 	}
 
 	if err := clt.AdminChangePassword(oldPassword, newPassword, confirmPassword); err != nil {
-		log.Fatal(err)
+		slog.Error(err.Error())
+		os.Exit(1)
 	}
 
 	fmt.Println("Password changed successfully")

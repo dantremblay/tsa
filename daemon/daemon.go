@@ -5,7 +5,6 @@ import (
 	"os"
 	"strconv"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/juliengk/go-utils/password"
 	"github.com/juliengk/go-utils/validation"
 	"github.com/kassisol/tsa/api/server"
@@ -14,6 +13,7 @@ import (
 	"github.com/kassisol/tsa/pkg/tls"
 	"github.com/kassisol/tsa/pkg/token"
 	"github.com/spf13/cobra"
+	"log/slog"
 )
 
 func serverInitConfig(appDir string) error {
@@ -24,7 +24,7 @@ func serverInitConfig(appDir string) error {
 	defer s.End()
 
 	if s.CountConfigKey("jwk") > 0 {
-		log.Info("Server initialization already done")
+		slog.Info("Server initialization already done")
 
 		return nil
 	}
@@ -47,11 +47,13 @@ func runDaemon(cmd *cobra.Command, args []string) {
 
 	cfg := adf.NewDaemon()
 	if err := cfg.Init(); err != nil {
-		log.Fatal(err)
+		slog.Error(err.Error())
+		os.Exit(1)
 	}
 
 	if err := serverInitConfig(cfg.App.Dir.Root); err != nil {
-		log.Fatal(err)
+		slog.Error(err.Error())
+		os.Exit(1)
 	}
 
 	bindPort = serverBindPort
@@ -60,7 +62,8 @@ func runDaemon(cmd *cobra.Command, args []string) {
 	}
 
 	if serverTLSGen && len(serverFQDN) == 0 {
-		log.Fatal("you must specified --fqdn if --tlsgen is enabled")
+		slog.Error("you must specified --fqdn if --tlsgen is enabled")
+		os.Exit(1)
 	}
 
 	if len(serverFQDN) > 0 {
@@ -70,12 +73,14 @@ func runDaemon(cmd *cobra.Command, args []string) {
 	// Input validations
 	// IV - API Bind address
 	if err := validation.IsValidIP(serverBindAddress); err != nil {
-		log.Fatal(err)
+		slog.Error(err.Error())
+		os.Exit(1)
 	}
 
 	// IV - API Port
 	if err := validation.IsValidPort(bindPort); err != nil {
-		log.Fatal(err)
+		slog.Error(err.Error())
+		os.Exit(1)
 	}
 
 	// Create API certificates
@@ -84,20 +89,23 @@ func runDaemon(cmd *cobra.Command, args []string) {
 	if serverTLSGen {
 		if !conf.CertificateExist() || (conf.CertificateExist() && conf.IsCertificateExpire()) {
 			if err := conf.CreateSelfSignedCertificate(fqdn, serverTLSDuration); err != nil {
-				log.Fatal(err)
+				slog.Error(err.Error())
+				os.Exit(1)
 			}
 		}
 	}
 
 	if serverTLS {
 		if !conf.CertificateExist() {
-			log.Fatal("No certificate found")
+			slog.Error("No certificate found")
+			os.Exit(1)
 		}
 	}
 
 	s, err := storage.NewDriver("sqlite", cfg.App.Dir.Root)
 	if err != nil {
-		log.Fatal(err)
+		slog.Error(err.Error())
+		os.Exit(1)
 	}
 	defer s.End()
 

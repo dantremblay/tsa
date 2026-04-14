@@ -1,7 +1,9 @@
 package daemon
 
 import (
-	log "github.com/Sirupsen/logrus"
+	"log/slog"
+	"os"
+
 	"github.com/kassisol/tsa/pkg/adf"
 	"github.com/spf13/cobra"
 )
@@ -27,7 +29,8 @@ func NewCommand() *cobra.Command {
 
 	cfg := adf.NewDaemon()
 	if err := cfg.Init(); err != nil {
-		log.Fatal(err)
+		slog.Error(err.Error())
+		os.Exit(1)
 	}
 
 	flags := cmd.Flags()

@@ -20,7 +20,7 @@ func (c *Config) RemoveConfig(key, value string) {
 		sql = sql.Where("value = ?", value)
 	}
 
-	sql.Delete(ServerConfig{})
+	sql.Delete(&ServerConfig{})
 }
 
 func (c *Config) GetConfig(key string) []types.ServerConfig {

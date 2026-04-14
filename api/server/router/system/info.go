@@ -15,7 +15,7 @@ import (
 	"github.com/kassisol/tsa/pkg/api"
 	"github.com/kassisol/tsa/pkg/host"
 	"github.com/kassisol/tsa/version"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 )
 
 func InfoHandle(c echo.Context) error {

@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"path"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/juliengk/go-cert/ca"
 	"github.com/juliengk/go-cert/ca/database"
 	"github.com/juliengk/go-cert/errors"
@@ -21,7 +20,8 @@ import (
 	"github.com/kassisol/tsa/pkg/api"
 	"github.com/kassisol/tsa/pkg/host"
 	"github.com/kassisol/tsa/pkg/token"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
+	"log/slog"
 )
 
 func NewCertHandle(c echo.Context) error {
@@ -64,7 +64,7 @@ func NewCertHandle(c echo.Context) error {
 	newcert := new(types.NewCert)
 
 	if err := c.Bind(newcert); err != nil {
-		log.Info(err)
+		slog.Info(err.Error())
 		e := errors.New(errors.CSRError, errors.ReadFailed)
 		r := jsonapi.NewErrorResponse(e.ErrorCode, e.Message)
 
@@ -83,8 +83,8 @@ func NewCertHandle(c echo.Context) error {
 	// Validate Common Name for client
 	if newcert.Type == "client" {
 		if !claims.Admin {
-			if claims.Audience != csr.CR.Subject.CommonName {
-				r := jsonapi.NewErrorResponse(12000, fmt.Sprintf("user '%s' and certificate CN '%s' do not match", claims.Audience, csr.CR.Subject.CommonName))
+			if claims.GetFirstAudience() != csr.CR.Subject.CommonName {
+				r := jsonapi.NewErrorResponse(12000, fmt.Sprintf("user '%s' and certificate CN '%s' do not match", claims.GetFirstAudience(), csr.CR.Subject.CommonName))
 
 				return api.JSON(c, http.StatusBadRequest, r)
 			}
@@ -96,9 +96,9 @@ func NewCertHandle(c echo.Context) error {
 			return api.JSON(c, http.StatusBadRequest, r)
 		}
 
-		// if type is client, CN should not be a FQDN
-		if err = validation.IsValidFQDN(csr.CR.Subject.CommonName); err == nil {
-			r := jsonapi.NewErrorResponse(12000, "Cannot use FQDN for client CN")
+		// if type is client, CN should be a valid name
+		if err = validation.IsValidName(csr.CR.Subject.CommonName); err != nil {
+			r := jsonapi.NewErrorResponse(12000, "Username is not valid")
 
 			return api.JSON(c, http.StatusBadRequest, r)
 		}
@@ -112,7 +112,7 @@ func NewCertHandle(c echo.Context) error {
 			return api.JSON(c, http.StatusBadRequest, r)
 		}
 
-		if claims.Audience == csr.CR.Subject.CommonName {
+		if claims.GetFirstAudience() == csr.CR.Subject.CommonName {
 			r := jsonapi.NewErrorResponse(12000, "Cannot set CN to username for certificate of type engine")
 
 			return api.JSON(c, http.StatusBadRequest, r)

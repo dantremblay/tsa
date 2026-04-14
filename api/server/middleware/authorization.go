@@ -1,13 +1,15 @@
 package middleware
 
 import (
-	log "github.com/Sirupsen/logrus"
+	"log/slog"
+	"os"
+
 	pass "github.com/juliengk/go-utils/password"
 	"github.com/kassisol/tsa/api/auth"
 	"github.com/kassisol/tsa/api/auth/driver"
 	"github.com/kassisol/tsa/api/storage"
 	"github.com/kassisol/tsa/pkg/adf"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 )
 
 func Authorization(username, password string, c echo.Context) (bool, error) {
@@ -20,13 +22,14 @@ func Authorization(username, password string, c echo.Context) (bool, error) {
 
 	s, err := storage.NewDriver("sqlite", cfg.App.Dir.Root)
 	if err != nil {
-		log.Fatal(err)
+		slog.Error(err.Error())
+		os.Exit(1)
 	}
 	defer s.End()
 
 	authType := s.GetConfig("auth_type")[0].Value
 	if authType == "none" {
-		log.Warning("No authentication configured")
+		slog.Warn("No authentication configured")
 	}
 
 	if username == "admin" {
@@ -36,12 +39,12 @@ func Authorization(username, password string, c echo.Context) (bool, error) {
 	} else {
 		a, err := auth.NewDriver(authType)
 		if err != nil {
-			log.Warning(err)
+			slog.Warn(err.Error())
 		}
 
 		loginStatus, err = a.Login(username, password)
 		if err != nil {
-			log.Warning(err)
+			slog.Warn(err.Error())
 
 			return false, err
 		}

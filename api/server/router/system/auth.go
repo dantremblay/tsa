@@ -10,7 +10,7 @@ import (
 	"github.com/kassisol/tsa/api/types"
 	"github.com/kassisol/tsa/pkg/adf"
 	"github.com/kassisol/tsa/pkg/api"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 )
 
 func AuthListHandle(c echo.Context) error {

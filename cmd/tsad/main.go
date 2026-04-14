@@ -18,7 +18,9 @@
 package main
 
 import (
-	log "github.com/Sirupsen/logrus"
+	"log/slog"
+	"os"
+
 	"github.com/juliengk/go-utils"
 	"github.com/juliengk/go-utils/user"
 	"github.com/kassisol/tsa/daemon"
@@ -28,7 +30,8 @@ func main() {
 	u := user.New()
 
 	if !u.IsRoot() {
-		log.Fatal("You must be root to run that command")
+		slog.Error("You must be root to run that command")
+		os.Exit(1)
 	}
 
 	cmd := daemon.NewCommand()

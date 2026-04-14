@@ -176,7 +176,10 @@ func (c *Config) GetExpire(jwt string) time.Time {
 	t := token.New([]byte(""), false)
 	claims, _ := t.GetStandardClaims(jwt)
 
-	return time.Unix(claims.ExpiresAt, 0)
+	if claims.ExpiresAt != nil {
+		return claims.ExpiresAt.Time
+	}
+	return time.Time{}
 }
 
 func (c *Config) GetServer(server string) (driver.ServerResult, error) {

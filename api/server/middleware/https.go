@@ -6,8 +6,8 @@ import (
 
 	"github.com/juliengk/stack/jsonapi"
 	"github.com/kassisol/tsa/pkg/api"
-	"github.com/labstack/echo"
-	"github.com/labstack/echo/middleware"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 )
 
 type HttpsConfig struct {

@@ -6,7 +6,7 @@ import (
 	"github.com/juliengk/stack/jsonapi"
 	"github.com/kassisol/tsa/api/types"
 	"github.com/kassisol/tsa/pkg/api"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 )
 
 func IndexHandle(c echo.Context) error {
