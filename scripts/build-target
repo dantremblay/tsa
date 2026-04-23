@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-CGO_ENABLED=0
+export CGO_ENABLED=0
 
 BUILD_DIR=${BUILD_DIR:-../../bin}
 BUILD_BIN=${1:-tsa}
@@ -17,7 +17,7 @@ fi
 
 CONST="-X github.com/kassisol/tsa/version.Version=${VERSION} -X github.com/kassisol/tsa/version.GitCommit=${COMMIT} -X github.com/kassisol/tsa/version.GitState=${GITSTATE} -X github.com/kassisol/tsa/version.BuildDate=$(date +%s)"
 
-LDFLAGS=${LDFLAGS:-"-linkmode external -extldflags -static -s -w"}
+LDFLAGS=${LDFLAGS:-"-s -w"}
 
 cd $(dirname $0)/..
 cd cmd/${BUILD_BIN}
@@ -30,13 +30,9 @@ if [ "$CROSS" = 1 ]; then
 	GOARCH=arm go build -ldflags "${CONST}" -o ${OUTPUT}-Linux-arm
 	go build -ldflags "${CONST} ${LDFLAGS}" -o ${OUTPUT}-Linux-x86_64
 
-	strip --strip-all ${OUTPUT}-Linux-x86_64
-
 	echo Built ${OUTPUT}-Linux-x86_64
 else
 	go build -ldflags "${CONST} ${LDFLAGS}" -o ${OUTPUT}
-
-	strip --strip-all ${OUTPUT}
 
 	echo Built ${OUTPUT}
 fi
