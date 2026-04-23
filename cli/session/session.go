@@ -48,7 +48,10 @@ func (c *Config) Create(server, username, password string, ttl int) error {
 	filter := map[string]string{
 		"name": server,
 	}
-	srv := c.storage.ListServers(filter)[0]
+	srv := c.storage.ListServers(filter)
+	if len(srv) == 0 {
+		return fmt.Errorf("Server \"%s\" is not defined. Add it with: tsa server add %s <TSA URL>", server, server)
+	}
 
 	// Check if there is an active session
 	filter2 := map[string]string{
@@ -67,7 +70,7 @@ func (c *Config) Create(server, username, password string, ttl int) error {
 	}
 
 	// otherwise create new session
-	clt, err := client.New(srv.TSAURL)
+	clt, err := client.New(srv[0].TSAURL)
 	if err != nil {
 		return err
 	}
@@ -84,7 +87,7 @@ func (c *Config) Create(server, username, password string, ttl int) error {
 		return err
 	}
 
-	c.storage.AddSession(srv.ID, token)
+	c.storage.AddSession(srv[0].ID, token)
 
 	return nil
 }
