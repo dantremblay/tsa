@@ -82,7 +82,14 @@ func (c *Config) GetStandardClaims(tokenString string) (jwt.StandardClaims, erro
 	cl := jwt.StandardClaims{}
 
 	if v, ok := claims["aud"]; ok {
-		cl.Audience = v.(string)
+		switch aud := v.(type) {
+		case string:
+			cl.Audience = aud
+		case []interface{}:
+			if len(aud) > 0 {
+				cl.Audience = aud[0].(string)
+			}
+		}
 	}
 	if v, ok := claims["exp"]; ok {
 		cl.ExpiresAt = int64(v.(float64))

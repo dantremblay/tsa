@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-CGO_ENABLED=0
+CGO_ENABLED=1
 
 BUILD_DIR=${BUILD_DIR:-../../bin}
 BUILD_BIN=${1:-tsa}
@@ -25,18 +25,14 @@ cd cmd/${BUILD_BIN}
 echo " Building ${BUILD_BIN} ${VERSION} from ${COMMIT} on ${ARCH}"
 
 if [ "$CROSS" = 1 ]; then
-	GOOS=darwin go build -ldflags "${CONST}" -o ${OUTPUT}-Darwin-x86_64
-	GOARCH=arm64 go build -ldflags "${CONST}" -o ${OUTPUT}-Linux-arm64
-	GOARCH=arm go build -ldflags "${CONST}" -o ${OUTPUT}-Linux-arm
-	go build -ldflags "${CONST} ${LDFLAGS}" -o ${OUTPUT}-Linux-x86_64
-
-	strip --strip-all ${OUTPUT}-Linux-x86_64
+	GOOS=darwin go build -tags netgo -ldflags "${CONST}" -o ${OUTPUT}-Darwin-x86_64
+	GOARCH=arm64 go build -tags netgo -ldflags "${CONST}" -o ${OUTPUT}-Linux-arm64
+	GOARCH=arm go build -tags netgo -ldflags "${CONST}" -o ${OUTPUT}-Linux-arm
+	go build -tags netgo -ldflags "${CONST} ${LDFLAGS}" -o ${OUTPUT}-Linux-x86_64
 
 	echo Built ${OUTPUT}-Linux-x86_64
 else
-	go build -ldflags "${CONST} ${LDFLAGS}" -o ${OUTPUT}
-
-	strip --strip-all ${OUTPUT}
+	go build -tags netgo -ldflags "${CONST} ${LDFLAGS}" -o ${OUTPUT}
 
 	echo Built ${OUTPUT}
 fi
