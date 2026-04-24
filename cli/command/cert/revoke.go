@@ -14,14 +14,14 @@ var revokeCN string
 
 func newRevokeCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "revoke [serial number]",
+		Use:   "revoke [serial number | --cn name]",
 		Short: "Revoke certificate",
 		Long:  revokeDescription,
 		Run:   runRevoke,
 	}
 
 	flags := cmd.Flags()
-	flags.StringVar(&revokeCN, "cn", "", "Revoke all valid certificates matching this CN (server name)")
+	flags.StringVarP(&revokeCN, "cn", "n", "", "Revoke all valid certificates matching this CN (server name)")
 
 	return cmd
 }

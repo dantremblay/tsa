@@ -97,9 +97,7 @@ func CertRevokeByCNHandle(c echo.Context) error {
 	certs := db.List(map[string]string{"cn": cn, "status": "V"})
 
 	if len(certs) == 0 {
-		r := jsonapi.NewErrorResponse(1000, "No valid certificate found for CN: "+cn)
-
-		return api.JSON(c, http.StatusNotFound, r)
+		return echo.NewHTTPError(http.StatusNotFound, "No valid certificate found for CN: "+cn)
 	}
 
 	revocationDate := ca.DatabaseDateTimeFormat(time.Now())
