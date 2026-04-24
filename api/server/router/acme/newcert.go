@@ -84,13 +84,16 @@ func NewCertHandle(c echo.Context) error {
 	if newcert.Type == "client" {
 		if !claims.Admin {
 			if claims.Audience != csr.CR.Subject.CommonName {
-				r := jsonapi.NewErrorResponse(12000, fmt.Sprintf("user '%s' and certificate CN '%s' do not match", claims.Audience, csr.CR.Subject.CommonName))
+				msg := fmt.Sprintf("user '%s' and certificate CN '%s' do not match", claims.Audience, csr.CR.Subject.CommonName)
+				log.Warning(msg)
+				r := jsonapi.NewErrorResponse(12000, msg)
 
 				return api.JSON(c, http.StatusBadRequest, r)
 			}
 		}
 
 		if csr.CR.Subject.CommonName == "admin" {
+			log.Warning("user 'admin' is not allowed to create client certificate")
 			r := jsonapi.NewErrorResponse(12000, "user 'admin' is not allowed to create client certificate")
 
 			return api.JSON(c, http.StatusBadRequest, r)
@@ -98,6 +101,7 @@ func NewCertHandle(c echo.Context) error {
 
 		// if type is client, CN should not be a FQDN
 		if err = validation.IsValidFQDN(csr.CR.Subject.CommonName); err == nil {
+			log.Warningf("Cannot use FQDN for client CN: %s", csr.CR.Subject.CommonName)
 			r := jsonapi.NewErrorResponse(12000, "Cannot use FQDN for client CN")
 
 			return api.JSON(c, http.StatusBadRequest, r)
@@ -107,12 +111,14 @@ func NewCertHandle(c echo.Context) error {
 	// Validate Common Name for engine
 	if newcert.Type == "engine" {
 		if !claims.Admin {
+			log.Warningf("Non-admin user '%s' attempted to request engine certificate", claims.Audience)
 			r := jsonapi.NewErrorResponse(12000, "Only members of Admin group can request certificate of type engine")
 
 			return api.JSON(c, http.StatusBadRequest, r)
 		}
 
 		if claims.Audience == csr.CR.Subject.CommonName {
+			log.Warningf("Cannot set CN to username for certificate of type engine: %s", claims.Audience)
 			r := jsonapi.NewErrorResponse(12000, "Cannot set CN to username for certificate of type engine")
 
 			return api.JSON(c, http.StatusBadRequest, r)
@@ -120,6 +126,7 @@ func NewCertHandle(c echo.Context) error {
 
 		// if type is engine, CN should be a FQDN
 		if err = validation.IsValidFQDN(csr.CR.Subject.CommonName); err != nil {
+			log.Warningf("FQDN is not valid: %s", csr.CR.Subject.CommonName)
 			r := jsonapi.NewErrorResponse(12000, "FQDN is not valid")
 
 			return api.JSON(c, http.StatusBadRequest, r)
@@ -130,6 +137,7 @@ func NewCertHandle(c echo.Context) error {
 	indexDN := csr.SubjectToString()
 
 	if db.Exists(indexDN) {
+		log.Warningf("Certificate already exists for: %s", indexDN)
 		e := errors.New(errors.CertStoreError, errors.RecordFound)
 		r := jsonapi.NewErrorResponse(e.ErrorCode, e.Message)
 
