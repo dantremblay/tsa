@@ -67,6 +67,7 @@ func API(addr string, tls bool) {
 
 	sys.GET("/cert", system.CertListHandle)
 	sys.DELETE("/cert/revoke/:serialnumber", system.CertRevokeHandle)
+	sys.DELETE("/cert/revoke-by-cn/:cn", system.CertRevokeByCNHandle)
 
 	// CA public certificate
 	e.GET("/ca", ca.PubCertHandle)

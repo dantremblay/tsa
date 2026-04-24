@@ -75,3 +75,39 @@ func CertRevokeHandle(c echo.Context) error {
 
 	return c.NoContent(http.StatusNoContent)
 }
+
+func CertRevokeByCNHandle(c echo.Context) error {
+	cfg := adf.NewDaemon()
+	if err := cfg.Init(); err != nil {
+		r := jsonapi.NewErrorResponse(1000, err.Error())
+
+		return api.JSON(c, http.StatusInternalServerError, r)
+	}
+
+	db, err := database.NewBackend("sqlite", cfg.CA.Dir.Root)
+	if err != nil {
+		e := errors.New(errors.DatabaseError, errors.ReadFailed)
+		r := jsonapi.NewErrorResponse(e.ErrorCode, e.Message)
+
+		return api.JSON(c, http.StatusInternalServerError, r)
+	}
+	defer db.End()
+
+	cn := c.Param("cn")
+	certs := db.List(map[string]string{"cn": cn, "status": "V"})
+
+	if len(certs) == 0 {
+		r := jsonapi.NewErrorResponse(1000, "No valid certificate found for CN: "+cn)
+
+		return api.JSON(c, http.StatusNotFound, r)
+	}
+
+	revocationDate := ca.DatabaseDateTimeFormat(time.Now())
+	revocationReason := ocsp.CessationOfOperation
+
+	for _, cert := range certs {
+		db.Revoke(cert.SerialNumber, revocationDate, revocationReason)
+	}
+
+	return c.NoContent(http.StatusNoContent)
+}
