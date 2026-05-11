@@ -51,19 +51,17 @@ type VersionDisplay struct {
 }
 
 func New() *VersionInfo {
-	i, err := strconv.ParseInt(BuildDate, 10, 64)
-	if err != nil {
-		panic(err)
+	buildDate := BuildDate
+	if i, err := strconv.ParseInt(BuildDate, 10, 64); err == nil {
+		buildDate = time.Unix(i, 0).String()
 	}
-
-	tu := time.Unix(i, 0)
 
 	return &VersionInfo{
 		Version:   Version,
 		GoVersion: runtime.Version(),
 		GitCommit: GitCommit,
 		GitState:  GitState,
-		BuildDate: tu.String(),
+		BuildDate: buildDate,
 		OS:        runtime.GOOS,
 		Arch:      runtime.GOARCH,
 	}

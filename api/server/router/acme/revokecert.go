@@ -59,10 +59,18 @@ func RevokeCertHandle(c echo.Context) error {
 	rcert := db.List(map[string]string{"serial": strconv.Itoa(revokecert.SerialNumber)})[0]
 
 	if rcert.StatusFlag != "V" {
-		e := errors.New(errors.OCSPError, errors.InvalidStatus)
-		r := jsonapi.NewErrorResponse(e.ErrorCode, e.Message)
+		var msg string
+		switch rcert.StatusFlag {
+		case "R":
+			msg = "Certificate already revoked"
+		case "E":
+			msg = "Certificate has expired"
+		default:
+			msg = "Invalid revocation status"
+		}
+		r := jsonapi.NewErrorResponse(int(errors.OCSPError)+int(errors.InvalidStatus), msg)
 
-		return api.JSON(c, http.StatusInternalServerError, r)
+		return api.JSON(c, http.StatusBadRequest, r)
 	}
 
 	reCN := regexp.MustCompile(`CN=([a-z0-9\.\-\_]+)$`)
