@@ -136,12 +136,22 @@ func NewCertHandle(c echo.Context) error {
 	// Make sure that certificate not already issued and is valid
 	indexDN := csr.SubjectToString()
 
-	if db.Exists(indexDN) {
-		slog.Warn("Certificate already exists", "dn", indexDN)
-		e := errors.New(errors.CertStoreError, errors.RecordFound)
-		r := jsonapi.NewErrorResponse(e.ErrorCode, e.Message)
+	existingCerts := db.List(map[string]string{"status": "V"})
+	for _, ec := range existingCerts {
+		if ec.DistinguishedName == indexDN {
+			slog.Warn("Certificate already exists", "dn", indexDN)
 
-		return api.JSON(c, http.StatusBadRequest, r)
+			expiry := ec.ExpirationDate
+			if len(expiry) >= 8 {
+				expiry = fmt.Sprintf("%s-%s-%s", expiry[0:4], expiry[4:6], expiry[6:8])
+			}
+
+			msg := fmt.Sprintf("Certificate already exists and is valid (expires: %s)", expiry)
+			e := errors.New(errors.CertStoreError, errors.RecordFound)
+			r := jsonapi.NewErrorResponse(e.ErrorCode, msg)
+
+			return api.JSON(c, http.StatusBadRequest, r)
+		}
 	}
 
 	// Sign CSR
