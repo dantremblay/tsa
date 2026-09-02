@@ -18,7 +18,7 @@ func GetTokenSigningKey() ([]byte, error) {
 	if err != nil {
 		e := errors.New(errors.DatabaseError, errors.ReadFailed)
 
-		return []byte(""), fmt.Errorf(e.Message)
+		return []byte(""), fmt.Errorf("%s", e.Message)
 	}
 	defer s.End()
 

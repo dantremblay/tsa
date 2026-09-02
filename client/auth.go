@@ -41,7 +41,7 @@ func (c *Config) AuthList(token string) ([]types.ServerConfig, error) {
 			return nil, fmt.Errorf("Authorization denied")
 		}
 
-		return nil, fmt.Errorf(response.Errors.Message)
+		return nil, fmt.Errorf("%s", response.Errors.Message)
 	}
 
 	r, err := json.Marshal(response.Data)
@@ -99,7 +99,7 @@ func (c *Config) AuthCreate(token, key, value string) (*types.ServerConfig, erro
 			return nil, fmt.Errorf("Authorization denied")
 		}
 
-		return nil, fmt.Errorf(response.Errors.Message)
+		return nil, fmt.Errorf("%s", response.Errors.Message)
 	}
 
 	r, err := json.Marshal(response.Data)
@@ -148,7 +148,7 @@ func (c *Config) AuthDelete(token, key, value string) error {
 			return err
 		}
 
-		return fmt.Errorf(response.Errors.Message)
+		return fmt.Errorf("%s", response.Errors.Message)
 	}
 
 	return nil
@@ -192,7 +192,7 @@ func (c *Config) AuthEnable(token, atype string) error {
 			return err
 		}
 
-		return fmt.Errorf(response.Errors.Message)
+		return fmt.Errorf("%s", response.Errors.Message)
 	}
 
 	return nil
@@ -236,7 +236,7 @@ func (c *Config) AuthDisable(token string) error {
 			return err
 		}
 
-		return fmt.Errorf(response.Errors.Message)
+		return fmt.Errorf("%s", response.Errors.Message)
 	}
 
 	return nil

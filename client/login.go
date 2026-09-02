@@ -42,7 +42,7 @@ func (c *Config) GetToken(username, password string, ttl int) (string, error) {
 			return "", fmt.Errorf("Authorization denied")
 		}
 
-		return "", fmt.Errorf(response.Errors.Message)
+		return "", fmt.Errorf("%s", response.Errors.Message)
 	}
 
 	token := GetReflectStringValue(response.Data)

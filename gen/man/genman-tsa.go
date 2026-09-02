@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/juliengk/go-utils/filedir"
 	"github.com/kassisol/tsa/cli/command/commands"
@@ -10,11 +11,15 @@ import (
 )
 
 func main() {
-	manPath := "/tmp/tsa/man"
+	manPath := os.Getenv("TSA_MAN_PATH")
+	if manPath == "" {
+		manPath = "dist/tsa/man"
+	}
 	man8 := fmt.Sprintf("%s/man8", manPath)
 
 	if err := filedir.CreateDirIfNotExist(man8, true, 0755); err != nil {
 		fmt.Println(err)
+		os.Exit(1)
 	}
 
 	header := &doc.GenManHeader{

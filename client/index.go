@@ -40,7 +40,7 @@ func (c *Config) GetDirectory() error {
 			return fmt.Errorf("Problem fetching directory")
 		}
 
-		return fmt.Errorf(response.Errors.Message)
+		return fmt.Errorf("%s", response.Errors.Message)
 	}
 
 	r, err := json.Marshal(response.Data)

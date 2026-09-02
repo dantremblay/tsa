@@ -41,7 +41,7 @@ func (c *Config) GetServerVersion() (*version.VersionInfo, error) {
 			return nil, fmt.Errorf("Authorization denied")
 		}
 
-		return nil, fmt.Errorf(response.Errors.Message)
+		return nil, fmt.Errorf("%s", response.Errors.Message)
 	}
 
 	r, err := json.Marshal(response.Data)
@@ -88,7 +88,7 @@ func (c *Config) GetInfo(token string) (*types.SystemInfo, error) {
 			return nil, fmt.Errorf("Authorization denied")
 		}
 
-		return nil, fmt.Errorf(response.Errors.Message)
+		return nil, fmt.Errorf("%s", response.Errors.Message)
 	}
 
 	r, err := json.Marshal(response.Data)
@@ -141,7 +141,7 @@ func (c *Config) AdminChangePassword(pold, pnew, pconfirm string) error {
 	}
 
 	if result.Response.StatusCode != 200 {
-		return fmt.Errorf(response.Errors.Message)
+		return fmt.Errorf("%s", response.Errors.Message)
 	}
 
 	return nil
@@ -193,7 +193,7 @@ func (c *Config) CAInit(token, ctype, country, state, locality, org, ou string, 
 			return fmt.Errorf("Authorization denied")
 		}
 
-		return fmt.Errorf(response.Errors.Message)
+		return fmt.Errorf("%s", response.Errors.Message)
 	}
 
 	return nil
