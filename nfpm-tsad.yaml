@@ -1,0 +1,44 @@
+name: tsa-daemon
+arch: "${GOARCH}"
+platform: linux
+version: "${VERSION}"
+release: "${RELEASE}"
+maintainer: "Kassisol <support@kassisol.com>"
+description: "TSA CA (Certification Authority) server daemon"
+homepage: "https://github.com/kassisol/tsa"
+license: "GPL-3.0"
+vendor: "Kassisol"
+section: "utils"
+
+contents:
+  - src: bin/tsad
+    dst: /usr/sbin/tsad
+    file_info:
+      mode: 0755
+
+  - src: contrib/init/systemd/tsad.service
+    dst: /usr/lib/systemd/system/tsad.service
+    type: config
+    file_info:
+      mode: 0644
+
+  - src: dist/tsad/man/man8/
+    dst: /usr/share/man/man8/
+    type: tree
+    file_info:
+      mode: 0644
+
+  - src: dist/tsad/shellcompletion/bash
+    dst: /usr/share/bash-completion/completions/tsad
+    file_info:
+      mode: 0644
+
+scripts:
+  postinstall: scripts/nfpm/tsad-postinstall.sh
+  preremove: scripts/nfpm/tsad-preremove.sh
+
+rpm:
+  group: "Tools/Docker"
+  summary: "TSA CA (Certification Authority) server daemon"
+
+deb: {}
