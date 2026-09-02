@@ -2,10 +2,7 @@
 
 HBM TSA is a CA (Certification Authority) server that issues certificates for
 enabling TLS on the Docker Engine. It works together with
-[twic](https://github.com/kassisol/twic), the client used to request and manage
-those certificates.
-
-[![Go Report Card](https://goreportcard.com/badge/github.com/kassisol/tsa)](https://goreportcard.com/report/github.com/kassisol/tsa)
+[twic](https://github.com/dantremblay/twic), the client used to request and manage those certificates.
 
 TSA ships two binaries:
 
@@ -53,7 +50,7 @@ tsa passwd
 ```
 
 The server is now ready to issue certificates. Clients use
-[twic](https://github.com/kassisol/twic) to request them.
+[twic](https://github.com/dantremblay/twic) to request them.
 
 To issue certificates to real users (rather than only `admin`), enable an
 authentication backend:
@@ -111,13 +108,49 @@ API:
 tsad --tls --tlsgen --fqdn tsa.example.com
 ```
 
-## Admin API endpoints
+## API endpoints
 
-These endpoints require a JWT from an authenticated admin. They are typically
-used by tooling rather than directly.
+The daemon exposes the following HTTP API. Most endpoints are consumed by the
+`tsa` CLI and by [twic](https://github.com/kassisol/twic); they are listed here
+for reference and tooling.
+
+Public (no authentication):
 
 | Method | Path | Description |
 |---|---|---|
+| `GET` | `/` | API directory |
+| `GET` | `/version` | Server version |
+| `GET` | `/ca` | CA public certificate |
+| `GET` | `/crl/CRL.crl` | Certificate revocation list |
+
+Authenticated (HTTP Basic):
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/new-authz` | Obtain an access token (JWT) |
+
+Certificate operations (JWT — issued to any authorized user):
+
+| Method | Path | Description |
+|---|---|---|
+| `POST` | `/acme/new-app` | Request a signed certificate for a CSR |
+| `POST` | `/acme/revoke-cert` | Revoke a certificate |
+
+Admin only (JWT + admin group):
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/system/info` | Server information |
+| `PUT` | `/system/admin/password` | Change the admin password |
+| `POST` | `/system/ca/init` | Initialize the root CA |
+| `GET` | `/system/auth` | List auth configuration |
+| `POST` | `/system/auth` | Add an auth configuration key |
+| `DELETE` | `/system/auth/:key` | Remove an auth configuration key |
+| `PUT` | `/system/auth/enable/:type` | Enable an auth backend |
+| `PUT` | `/system/auth/disable` | Disable the auth backend |
+| `GET` | `/system/cert` | List issued certificates |
+| `DELETE` | `/system/cert/revoke/:serialnumber` | Revoke a certificate by serial number |
+| `DELETE` | `/system/cert/revoke-by-cn/:cn` | Revoke all valid certificates for a CN |
 | `POST` | `/tsa/ug/register` | Register a user group (body: group value) |
 | `DELETE` | `/tsa/ug/register` | Unregister a user group |
 | `DELETE` | `/tsa/ca/cert` | Revoke all valid certificates for a CN (body: CN) |
@@ -147,8 +180,3 @@ To build packages for a different architecture:
 ```bash
 TARGETARCH=arm64 make packages
 ```
-
-## User feedback
-
-If you have any problems with or questions about this application, please open a
-[GitHub issue](https://github.com/kassisol/tsa/issues).
