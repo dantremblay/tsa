@@ -1,6 +1,7 @@
 package token
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -91,7 +92,10 @@ func (c *Config) GetStandardClaims(tokenString string) (jwt.RegisteredClaims, er
 		return jwt.RegisteredClaims{}, err
 	}
 
-	claims := token.Claims.(jwt.MapClaims)
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return jwt.RegisteredClaims{}, fmt.Errorf("invalid token claims")
+	}
 
 	cl := jwt.RegisteredClaims{}
 
@@ -107,23 +111,23 @@ func (c *Config) GetStandardClaims(tokenString string) (jwt.RegisteredClaims, er
 			}
 		}
 	}
-	if v, ok := claims["exp"]; ok {
-		cl.ExpiresAt = jwt.NewNumericDate(time.Unix(int64(v.(float64)), 0))
+	if v, ok := claims["exp"].(float64); ok {
+		cl.ExpiresAt = jwt.NewNumericDate(time.Unix(int64(v), 0))
 	}
-	if v, ok := claims["jti"]; ok {
-		cl.ID = v.(string)
+	if v, ok := claims["jti"].(string); ok {
+		cl.ID = v
 	}
-	if v, ok := claims["iat"]; ok {
-		cl.IssuedAt = jwt.NewNumericDate(time.Unix(int64(v.(float64)), 0))
+	if v, ok := claims["iat"].(float64); ok {
+		cl.IssuedAt = jwt.NewNumericDate(time.Unix(int64(v), 0))
 	}
-	if v, ok := claims["iss"]; ok {
-		cl.Issuer = v.(string)
+	if v, ok := claims["iss"].(string); ok {
+		cl.Issuer = v
 	}
-	if v, ok := claims["nbf"]; ok {
-		cl.NotBefore = jwt.NewNumericDate(time.Unix(int64(v.(float64)), 0))
+	if v, ok := claims["nbf"].(float64); ok {
+		cl.NotBefore = jwt.NewNumericDate(time.Unix(int64(v), 0))
 	}
-	if v, ok := claims["sub"]; ok {
-		cl.Subject = v.(string)
+	if v, ok := claims["sub"].(string); ok {
+		cl.Subject = v
 	}
 
 	return cl, nil
@@ -135,11 +139,14 @@ func (c *Config) GetCustomClaims(tokenString string) (MyCustomClaims, error) {
 		return MyCustomClaims{}, err
 	}
 
-	claims := token.Claims.(jwt.MapClaims)
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return MyCustomClaims{}, fmt.Errorf("invalid token claims")
+	}
 
 	admin := false
-	if v, ok := claims["admin"]; ok {
-		admin = v.(bool)
+	if v, ok := claims["admin"].(bool); ok {
+		admin = v
 	}
 
 	stdclaims, err := c.GetStandardClaims(tokenString)
