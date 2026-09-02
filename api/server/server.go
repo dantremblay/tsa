@@ -9,6 +9,8 @@ import (
 	"github.com/kassisol/tsa/api/server/router/ca"
 	"github.com/kassisol/tsa/api/server/router/crl"
 	"github.com/kassisol/tsa/api/server/router/system"
+	"github.com/kassisol/tsa/api/server/router/tsaca"
+	"github.com/kassisol/tsa/api/server/router/usergroup"
 	"github.com/kassisol/tsa/api/storage"
 	"github.com/kassisol/tsa/pkg/adf"
 	echojwt "github.com/labstack/echo-jwt/v4"
@@ -89,6 +91,21 @@ func API(addr string, tls bool) {
 
 	// Revoke
 	r.POST("/revoke-cert", acme.RevokeCertHandle)
+
+	// User Groups
+	ug := e.Group("/tsa/ug")
+	ug.Use(echojwt.JWT(jwk))
+	ug.Use(mw.AdminOnly())
+
+	ug.POST("/register", usergroup.RegisterHandle)
+	ug.DELETE("/register", usergroup.UnregisterHandle)
+
+	// TSA CA
+	tc := e.Group("/tsa/ca")
+	tc.Use(echojwt.JWT(jwk))
+	tc.Use(mw.AdminOnly())
+
+	tc.DELETE("/cert", tsaca.CertDeleteHandle)
 
 	if tls {
 		if err := e.StartTLS(addr, cfg.API.CrtFile, cfg.API.KeyFile); err != nil {
