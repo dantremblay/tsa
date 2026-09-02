@@ -41,7 +41,7 @@ func (c *Config) GetCACertificate() ([]byte, error) {
 			return nil, fmt.Errorf("Could not fetch CA public key")
 		}
 
-		return nil, fmt.Errorf(response.Errors.Message)
+		return nil, fmt.Errorf("%s", response.Errors.Message)
 	}
 
 	info := GetReflectStringValue(response.Data)
@@ -89,7 +89,7 @@ func (c *Config) GetCertificate(token string, certType string, csr []byte, durat
 	}
 
 	if result.Response.StatusCode != 200 {
-		return nil, fmt.Errorf(response.Errors.Message)
+		return nil, fmt.Errorf("%s", response.Errors.Message)
 	}
 
 	rc := GetReflectStringValue(response.Data)
@@ -135,7 +135,7 @@ func (c *Config) RevokeCertificate(token string, serialNumber int) error {
 	}
 
 	if result.Response.StatusCode != 200 {
-		return fmt.Errorf(response.Errors.Message)
+		return fmt.Errorf("%s", response.Errors.Message)
 	}
 
 	return nil

@@ -44,7 +44,7 @@ func (c *Config) CertList(token string, filters map[string]string) ([]backend.Ce
 			return nil, fmt.Errorf("Authorization denied")
 		}
 
-		return nil, fmt.Errorf(response.Errors.Message)
+		return nil, fmt.Errorf("%s", response.Errors.Message)
 	}
 
 	r, err := json.Marshal(response.Data)
@@ -87,7 +87,7 @@ func (c *Config) CertRevoke(token string, serialNumber int) error {
 			return err
 		}
 
-		return fmt.Errorf(response.Errors.Message)
+		return fmt.Errorf("%s", response.Errors.Message)
 	}
 
 	return nil
@@ -120,7 +120,7 @@ func (c *Config) CertRevokeByCN(token string, cn string) error {
 			return err
 		}
 
-		return fmt.Errorf(response.Errors.Message)
+		return fmt.Errorf("%s", response.Errors.Message)
 	}
 
 	return nil
