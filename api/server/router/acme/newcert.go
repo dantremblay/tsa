@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"path"
+	"time"
 
 	"github.com/juliengk/go-cert/ca"
 	"github.com/juliengk/go-cert/ca/database"
@@ -133,25 +134,50 @@ func NewCertHandle(c echo.Context) error {
 		}
 	}
 
-	// Make sure that certificate not already issued and is valid
+	// Make sure that certificate not already issued and is valid.
+	// If a V-flagged entry exists for the same DN but its expiration date is
+	// in the past, flip it to E and allow the new issuance to proceed — the
+	// old certificate is already cryptographically expired and blocking
+	// re-issuance serves no purpose.
 	indexDN := csr.SubjectToString()
+	today := time.Now().UTC().Format("20060102")
 
 	existingCerts := db.List(map[string]string{"status": "V"})
 	for _, ec := range existingCerts {
-		if ec.DistinguishedName == indexDN {
-			slog.Warn("Certificate already exists", "dn", indexDN)
-
-			expiry := ec.ExpirationDate
-			if len(expiry) >= 8 {
-				expiry = fmt.Sprintf("%s-%s-%s", expiry[0:4], expiry[4:6], expiry[6:8])
-			}
-
-			msg := fmt.Sprintf("Certificate already exists and is valid (expires: %s)", expiry)
-			e := errors.New(errors.CertStoreError, errors.RecordFound)
-			r := jsonapi.NewErrorResponse(e.ErrorCode, msg)
-
-			return api.JSON(c, http.StatusBadRequest, r)
+		if ec.DistinguishedName != indexDN {
+			continue
 		}
+
+		// ExpirationDate format: YYYYMMDDHHMMSSZ — first 8 chars are YYYYMMDD.
+		expiredDate := ""
+		if len(ec.ExpirationDate) >= 8 {
+			expiredDate = ec.ExpirationDate[:8]
+		}
+
+		if expiredDate != "" && expiredDate < today {
+			// Certificate is past its expiry: correct the index and allow
+			// the new issuance to proceed.
+			slog.Info("Marking expired certificate as E in index",
+				"dn", indexDN,
+				"serial", ec.SerialNumber,
+				"expired", expiredDate)
+			db.UpdateStatus(ec.SerialNumber, "E")
+			continue
+		}
+
+		// Certificate is still within its validity period: block issuance.
+		slog.Warn("Certificate already exists and is valid", "dn", indexDN)
+
+		expiry := ec.ExpirationDate
+		if len(expiry) >= 8 {
+			expiry = fmt.Sprintf("%s-%s-%s", expiry[0:4], expiry[4:6], expiry[6:8])
+		}
+
+		msg := fmt.Sprintf("Certificate already exists and is valid (expires: %s)", expiry)
+		e := errors.New(errors.CertStoreError, errors.RecordFound)
+		r := jsonapi.NewErrorResponse(e.ErrorCode, msg)
+
+		return api.JSON(c, http.StatusBadRequest, r)
 	}
 
 	// Sign CSR
